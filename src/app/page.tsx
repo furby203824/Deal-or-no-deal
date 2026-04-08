@@ -588,17 +588,20 @@ export default function DealOrNoDeal() {
     setCasesOpenedThisRound(newOpenedCount);
 
     if (newOpenedCount >= casesToOpenThisRound) {
-      const stillRemaining = updatedCases.filter((c) => !c.isOpened && c.id !== playerCaseId);
-      if (stillRemaining.length === 1) {
-        setPhase("final_choice");
-      } else {
-        const avg = stillRemaining.reduce((sum, c) => sum + c.value, 0) / stillRemaining.length;
-        const pctIndex = Math.min(round, BANKER_PERCENTAGES.length - 1);
-        const offer = Math.round(avg * BANKER_PERCENTAGES[pctIndex]);
-        setBankerOffer(offer);
-        setPhase("banker_offer");
-        if (soundEnabled) setTimeout(() => playPhoneRing(), 300);
-      }
+      // Delay so player can see the last revealed value and updated board
+      setTimeout(() => {
+        const stillRemaining = updatedCases.filter((c) => !c.isOpened && c.id !== playerCaseId);
+        if (stillRemaining.length === 1) {
+          setPhase("final_choice");
+        } else {
+          const avg = stillRemaining.reduce((sum, c) => sum + c.value, 0) / stillRemaining.length;
+          const pctIndex = Math.min(round, BANKER_PERCENTAGES.length - 1);
+          const offer = Math.round(avg * BANKER_PERCENTAGES[pctIndex]);
+          setBankerOffer(offer);
+          setPhase("banker_offer");
+          if (soundEnabled) setTimeout(() => playPhoneRing(), 300);
+        }
+      }, 1500);
     }
   };
 
