@@ -7,8 +7,6 @@ import {
   Phone,
   Trophy,
   RotateCcw,
-  Eye,
-  EyeOff,
   Award,
   X,
 } from "lucide-react";
@@ -136,13 +134,11 @@ function BriefcaseButton({
   isPlayerCase,
   canOpen,
   onOpen,
-  devMode,
 }: {
   caseData: CaseData;
   isPlayerCase: boolean;
   canOpen: boolean;
   onOpen: (id: number) => void;
-  devMode: boolean;
 }) {
   const { id, value, isOpened } = caseData;
   const clickable = canOpen && !isOpened;
@@ -193,11 +189,6 @@ function BriefcaseButton({
         >
           {formatMoney(value)}
         </motion.span>
-      )}
-      {devMode && !isOpened && (
-        <span className="absolute bottom-0 text-[7px] text-red-500 font-mono opacity-80">
-          {formatMoney(value)}
-        </span>
       )}
     </motion.button>
   );
@@ -537,7 +528,6 @@ export default function DealOrNoDeal() {
   const [acceptedType, setAcceptedType] = useState<"deal" | "stay" | "swap">("deal");
   const [careerWinnings, setCareerWinnings] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
-  const [devMode, setDevMode] = useState(false);
   const [lastOpenedValue, setLastOpenedValue] = useState<number | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -571,14 +561,6 @@ export default function DealOrNoDeal() {
   const casesToOpenThisRound = CASES_PER_ROUND[Math.min(round, CASES_PER_ROUND.length - 1)];
   const casesLeftToOpen = casesToOpenThisRound - casesOpenedThisRound;
   const playerCase = cases.find((c) => c.id === playerCaseId);
-
-  const calculateOffer = useCallback((): number => {
-    const remaining = cases.filter((c) => !c.isOpened && c.id !== playerCaseId);
-    if (remaining.length === 0) return 0;
-    const avg = remaining.reduce((sum, c) => sum + c.value, 0) / remaining.length;
-    const pctIndex = Math.min(round, BANKER_PERCENTAGES.length - 1);
-    return Math.round(avg * BANKER_PERCENTAGES[pctIndex]);
-  }, [cases, playerCaseId, round]);
 
   const handlePickOwnCase = (id: number) => {
     if (phase !== "pick_own_case") return;
@@ -702,13 +684,6 @@ export default function DealOrNoDeal() {
           >
             {soundEnabled ? "SFX ON" : "SFX OFF"}
           </button>
-          <button
-            onClick={() => setDevMode((d) => !d)}
-            className="text-slate-600 hover:text-slate-400 transition-colors"
-            title="Toggle Developer Mode"
-          >
-            {devMode ? <EyeOff size={13} /> : <Eye size={13} />}
-          </button>
         </div>
       </header>
 
@@ -745,17 +720,6 @@ export default function DealOrNoDeal() {
         )}
       </AnimatePresence>
 
-      {/* Dev Mode EV Display */}
-      {devMode && phase === "opening_cases" && (
-        <div className="text-xs text-red-500 font-mono mb-2 glass rounded-lg px-3 py-1.5">
-          EV: {formatMoney(
-            remainingCases.length > 0
-              ? Math.round(remainingCases.reduce((s, c) => s + c.value, 0) / remainingCases.length)
-              : 0
-          )} | Offer: {formatMoney(calculateOffer())} | Remaining: {remainingCases.length + 1}
-        </div>
-      )}
-
       {/* Main Layout */}
       <div className="flex flex-col lg:flex-row gap-4 w-full flex-1">
         <div className="lg:w-56 shrink-0">
@@ -783,7 +747,6 @@ export default function DealOrNoDeal() {
                   (phase === "opening_cases" && c.id !== playerCaseId && !c.isOpened)
                 }
                 onOpen={phase === "pick_own_case" ? handlePickOwnCase : handleOpenCase}
-                devMode={devMode}
               />
             ))}
           </div>
