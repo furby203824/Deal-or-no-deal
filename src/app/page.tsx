@@ -723,23 +723,13 @@ export default function DealOrNoDeal() {
         )}
       </AnimatePresence>
 
-      {/* Main Layout */}
-      <div className="flex flex-col lg:flex-row gap-4 w-full flex-1">
-        <div className="lg:w-56 shrink-0">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
-            Prize Board
-          </h3>
-          <MoneyBoard
-            values={PRIZE_VALUES}
-            openedValues={openedValues}
-            totalRemaining={remainingCases.length + 1}
-          />
-        </div>
+      {/* Main Layout: Briefcases left, Money Board right */}
+      <div className="flex flex-col-reverse lg:flex-row gap-4 w-full flex-1">
         <div className="flex-1">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
             Briefcases
           </h3>
-          <div className="grid grid-cols-5 sm:grid-cols-7 lg:grid-cols-9 gap-2">
+          <div className="grid grid-cols-5 sm:grid-cols-7 lg:grid-cols-7 gap-2">
             {cases.map((c) => (
               <BriefcaseButton
                 key={c.id}
@@ -753,6 +743,16 @@ export default function DealOrNoDeal() {
               />
             ))}
           </div>
+        </div>
+        <div className="lg:w-56 shrink-0 lg:sticky lg:top-4 lg:self-start">
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
+            Prize Board
+          </h3>
+          <MoneyBoard
+            values={PRIZE_VALUES}
+            openedValues={openedValues}
+            totalRemaining={remainingCases.length + 1}
+          />
         </div>
       </div>
 
