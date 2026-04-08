@@ -201,11 +201,15 @@ function BankerModal({
   round,
   onDeal,
   onNoDeal,
+  openedValues,
+  totalRemaining,
 }: {
   offer: number;
   round: number;
   onDeal: () => void;
   onNoDeal: () => void;
+  openedValues: Set<number>;
+  totalRemaining: number;
 }) {
   return (
     <motion.div
@@ -219,37 +223,53 @@ function BankerModal({
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.7, y: 40 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-        className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
+        className="glass-strong rounded-2xl p-4 sm:p-6 max-w-2xl w-full shadow-2xl shadow-gold/10"
       >
-        <motion.div
-          animate={{ rotate: [0, -15, 15, -10, 10, 0] }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <Phone className="mx-auto mb-3 text-gold" size={44} />
-        </motion.div>
-        <h2 className="text-lg sm:text-xl font-bold text-slate-300 mb-1">
-          The Banker is calling...
-        </h2>
-        <p className="text-slate-500 text-sm mb-5">Round {round} Offer</p>
-        <div className="shimmer-text text-4xl sm:text-5xl font-black mb-6">
-          <AnimatedCounter target={offer} duration={1500} />
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={onDeal}
-            className="flex-1 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-black py-4 px-4 rounded-xl
-              transition-all text-xl shadow-lg shadow-red-600/40 hover:shadow-red-500/50 hover:scale-[1.02]
-              border border-red-500/30"
-          >
-            DEAL
-          </button>
-          <button
-            onClick={onNoDeal}
-            className="flex-1 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 font-bold py-4 px-4 rounded-xl
-              transition-all text-base shadow-lg border border-slate-600/30"
-          >
-            NO DEAL
-          </button>
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+          {/* Left: Offer and buttons */}
+          <div className="flex-1 text-center flex flex-col justify-center">
+            <motion.div
+              animate={{ rotate: [0, -15, 15, -10, 10, 0] }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <Phone className="mx-auto mb-2 text-gold" size={40} />
+            </motion.div>
+            <h2 className="text-lg font-bold text-slate-300 mb-1">
+              The Banker is calling...
+            </h2>
+            <p className="text-slate-500 text-xs mb-3">Round {round} Offer</p>
+            <div className="shimmer-text text-3xl sm:text-4xl font-black mb-5">
+              <AnimatedCounter target={offer} duration={1500} />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={onDeal}
+                className="flex-1 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-black py-4 px-4 rounded-xl
+                  transition-all text-xl shadow-lg shadow-red-600/40 hover:shadow-red-500/50 hover:scale-[1.02]
+                  border border-red-500/30"
+              >
+                DEAL
+              </button>
+              <button
+                onClick={onNoDeal}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 font-bold py-4 px-4 rounded-xl
+                  transition-all text-base shadow-lg border border-slate-600/30"
+              >
+                NO DEAL
+              </button>
+            </div>
+          </div>
+          {/* Right: Money board */}
+          <div className="sm:w-52 shrink-0 sm:border-l sm:border-gold/10 sm:pl-5">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
+              Remaining Values
+            </h3>
+            <MoneyBoard
+              values={PRIZE_VALUES}
+              openedValues={openedValues}
+              totalRemaining={totalRemaining}
+            />
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -723,13 +743,23 @@ export default function DealOrNoDeal() {
         )}
       </AnimatePresence>
 
-      {/* Main Layout: Briefcases left, Money Board right */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 w-full flex-1">
+      {/* Main Layout */}
+      <div className="flex flex-col lg:flex-row gap-4 w-full flex-1">
+        <div className="lg:w-56 shrink-0">
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
+            Prize Board
+          </h3>
+          <MoneyBoard
+            values={PRIZE_VALUES}
+            openedValues={openedValues}
+            totalRemaining={remainingCases.length + 1}
+          />
+        </div>
         <div className="flex-1">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
             Briefcases
           </h3>
-          <div className="grid grid-cols-5 sm:grid-cols-7 lg:grid-cols-7 gap-2">
+          <div className="grid grid-cols-5 sm:grid-cols-7 lg:grid-cols-9 gap-2">
             {cases.map((c) => (
               <BriefcaseButton
                 key={c.id}
@@ -744,16 +774,6 @@ export default function DealOrNoDeal() {
             ))}
           </div>
         </div>
-        <div className="lg:w-56 shrink-0 lg:sticky lg:top-4 lg:self-start">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">
-            Prize Board
-          </h3>
-          <MoneyBoard
-            values={PRIZE_VALUES}
-            openedValues={openedValues}
-            totalRemaining={remainingCases.length + 1}
-          />
-        </div>
       </div>
 
       {/* Modals */}
@@ -764,6 +784,8 @@ export default function DealOrNoDeal() {
             round={round + 1}
             onDeal={handleDeal}
             onNoDeal={handleNoDeal}
+            openedValues={openedValues}
+            totalRemaining={remainingCases.length + 1}
           />
         )}
       </AnimatePresence>
