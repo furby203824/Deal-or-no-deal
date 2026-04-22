@@ -687,7 +687,7 @@ export default function DealOrNoDeal() {
   const [prizeValues, setPrizeValues] = useState<number[]>(PRIZE_VALUES);
 
   const initGame = useCallback(() => {
-    const valuesToUse = difficulty ? getPrizeValues(difficulty) : prizeValues;
+    const valuesToUse = difficulty ? getPrizeValues(difficulty) : PRIZE_VALUES;
     const shuffled = shuffleArray(valuesToUse);
     const newCases: CaseData[] = shuffled.map((value, i) => ({
       id: i + 1,
@@ -702,7 +702,7 @@ export default function DealOrNoDeal() {
     setBankerOffer(0);
     setFinalWinnings(0);
     setLastOpenedValue(null);
-  }, [difficulty, prizeValues]);
+  }, [difficulty]);
 
   useEffect(() => {
     setCareerWinnings(getCareerWinnings());
