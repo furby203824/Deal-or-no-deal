@@ -1,10 +1,26 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-export const PRIZE_VALUES = [
+export type DifficultyLevel = "1M" | "3M" | "5M" | "10M";
+
+export const DIFFICULTY_OPTIONS: { label: string; value: DifficultyLevel; max: number }[] = [
+  { label: "Easy", value: "1M", max: 1_000_000 },
+  { label: "Medium", value: "3M", max: 3_000_000 },
+  { label: "Hard", value: "5M", max: 5_000_000 },
+  { label: "Insane", value: "10M", max: 10_000_000 },
+];
+
+export const BASE_PRIZE_VALUES = [
   0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1_000, 5_000,
   10_000, 25_000, 50_000, 75_000, 100_000, 200_000, 300_000, 400_000, 500_000,
   750_000, 1_000_000,
 ];
+
+export function getPrizeValues(difficulty: DifficultyLevel): number[] {
+  const maxPrize = DIFFICULTY_OPTIONS.find((d) => d.value === difficulty)?.max || 1_000_000;
+  return BASE_PRIZE_VALUES.map((val) => val * (maxPrize / 1_000_000));
+}
+
+export const PRIZE_VALUES = BASE_PRIZE_VALUES;
 
 export const CASES_PER_ROUND = [6, 5, 4, 3, 2, 1, 1, 1, 1, 1];
 
