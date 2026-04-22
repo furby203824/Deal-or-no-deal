@@ -14,9 +14,11 @@ import {
   PRIZE_VALUES,
   CASES_PER_ROUND,
   BANKER_PERCENTAGES,
+  DIFFICULTY_OPTIONS,
   type GamePhase,
   type CaseData,
   type LeaderboardEntry,
+  type DifficultyLevel,
   shuffleArray,
   formatMoney,
   isHighValue,
@@ -31,6 +33,7 @@ import {
   playPhoneRing,
   playDealSound,
   triggerHaptic,
+  getPrizeValues,
 } from "./utils";
 
 // ─── Animated Counter Component ─────────────────────────────────────────────
@@ -515,6 +518,48 @@ function LeaderboardPanel({
   );
 }
 
+// ─── Difficulty Selector Modal ──────────────────────────────────────────────
+
+function DifficultySelector({
+  onSelect,
+}: {
+  onSelect: (difficulty: DifficultyLevel) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.7, y: 40 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.7, y: 40 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className="glass-strong rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
+      >
+        <h2 className="text-2xl font-black text-slate-200 mb-2">Choose Difficulty</h2>
+        <p className="text-slate-400 text-sm mb-6">Select your maximum prize pool</p>
+        <div className="grid grid-cols-2 gap-3">
+          {DIFFICULTY_OPTIONS.map((option) => (
+            <motion.button
+              key={option.value}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onSelect(option.value)}
+              className="glass rounded-xl p-4 hover:bg-gold/20 transition-all border border-slate-600/30 hover:border-gold/50"
+            >
+              <div className="text-lg font-bold text-gold">{option.label}</div>
+              <div className="text-xs text-slate-400 mt-1">{option.value}</div>
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ─── Main Game ───────────────────────────────────────────────────────────────
 
 export default function DealOrNoDeal() {
@@ -531,9 +576,12 @@ export default function DealOrNoDeal() {
   const [lastOpenedValue, setLastOpenedValue] = useState<number | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null);
+  const [prizeValues, setPrizeValues] = useState<number[]>(PRIZE_VALUES);
 
   const initGame = useCallback(() => {
-    const shuffled = shuffleArray(PRIZE_VALUES);
+    const valuesToUse = difficulty ? getPrizeValues(difficulty) : prizeValues;
+    const shuffled = shuffleArray(valuesToUse);
     const newCases: CaseData[] = shuffled.map((value, i) => ({
       id: i + 1,
       value,
@@ -547,13 +595,19 @@ export default function DealOrNoDeal() {
     setBankerOffer(0);
     setFinalWinnings(0);
     setLastOpenedValue(null);
-  }, []);
+  }, [difficulty, prizeValues]);
 
   useEffect(() => {
     setCareerWinnings(getCareerWinnings());
     setGamesPlayed(getGamesPlayed());
-    initGame();
-  }, [initGame]);
+  }, []);
+
+  useEffect(() => {
+    if (difficulty) {
+      setPrizeValues(getPrizeValues(difficulty));
+      initGame();
+    }
+  }, [difficulty, initGame]);
 
   // Derived state
   const openedValues = new Set(cases.filter((c) => c.isOpened).map((c) => c.value));
@@ -642,7 +696,9 @@ export default function DealOrNoDeal() {
   };
 
   const handleNameSkip = () => setPhase("game_over");
-  const handlePlayAgain = () => initGame();
+  const handlePlayAgain = () => {
+    setDifficulty(null);
+  };
 
   // Status message
   let statusMessage = "";
@@ -656,7 +712,17 @@ export default function DealOrNoDeal() {
     statusMessage = "Final decision time!";
   }
 
-  if (cases.length === 0) return null;
+  if (cases.length === 0 || difficulty === null) {
+    return (
+      <div className="flex-1 flex flex-col items-center p-3 sm:p-4 max-w-5xl mx-auto w-full justify-center">
+        <AnimatePresence>
+          {difficulty === null && (
+            <DifficultySelector onSelect={setDifficulty} />
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col items-center p-3 sm:p-4 max-w-5xl mx-auto w-full">
@@ -727,7 +793,7 @@ export default function DealOrNoDeal() {
             Prize Board
           </h3>
           <MoneyBoard
-            values={PRIZE_VALUES}
+            values={prizeValues}
             openedValues={openedValues}
             totalRemaining={remainingCases.length + 1}
           />
@@ -754,6 +820,11 @@ export default function DealOrNoDeal() {
       </div>
 
       {/* Modals */}
+      <AnimatePresence>
+        {difficulty === null && (
+          <DifficultySelector onSelect={setDifficulty} />
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {phase === "banker_offer" && (
           <BankerModal
