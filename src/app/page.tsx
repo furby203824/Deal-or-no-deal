@@ -928,11 +928,13 @@ function LeaderboardPanel({
 }: {
   onClose: () => void;
 }) {
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>("1M");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
-    setEntries(getLeaderboard());
-  }, []);
+    const allEntries = getLeaderboard();
+    setEntries(allEntries.filter((e) => e.difficulty === selectedDifficulty));
+  }, [selectedDifficulty]);
 
   return (
     <motion.div
@@ -947,7 +949,7 @@ function LeaderboardPanel({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="glass-strong rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-gold/10 max-h-[80vh] flex flex-col"
+        className="glass-strong rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-gold/10 max-h-[90vh] flex flex-col"
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-slate-200 flex items-center gap-2">
@@ -956,6 +958,24 @@ function LeaderboardPanel({
           <button onClick={onClose} className="text-slate-400 hover:text-slate-200 transition-colors">
             <X size={20} />
           </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {DIFFICULTY_OPTIONS.map((opt) => (
+            <motion.button
+              key={opt.value}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedDifficulty(opt.value)}
+              className={`py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+                selectedDifficulty === opt.value
+                  ? "bg-gold text-slate-900 shadow-lg shadow-gold/50"
+                  : "bg-slate-700 hover:bg-slate-600 text-slate-200"
+              }`}
+            >
+              {opt.label}
+            </motion.button>
+          ))}
         </div>
 
         {entries.length === 0 ? (
@@ -1211,6 +1231,7 @@ export default function DealOrNoDeal() {
       finalRound: round + 1,
       synced: false,
       avatarSvg: playerAvatar?.svgCode,
+      difficulty: difficulty || "1M",
     });
     setPhase("game_over");
   };
