@@ -437,11 +437,13 @@ function GameOverModal({
   winnings,
   playerCaseValue,
   accepted,
+  avatar,
   onPlayAgain,
 }: {
   winnings: number;
   playerCaseValue: number;
   accepted: "deal" | "stay" | "swap";
+  avatar: PlayerAvatar | null;
   onPlayAgain: () => void;
 }) {
   let message = "";
@@ -473,16 +475,30 @@ function GameOverModal({
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
+        {avatar && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.1 }}
+            className="mb-4"
+          >
+            <AvatarPreview avatar={avatar} size="large" />
+          </motion.div>
+        )}
+
         <motion.div
           animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <Trophy className="mx-auto mb-3 text-gold" size={48} />
         </motion.div>
-        <h2 className="text-xl font-bold text-slate-300 mb-2">Game Over!</h2>
-        <div className="shimmer-text text-4xl sm:text-5xl font-black mb-2">
+
+        <h2 className="text-xl font-bold text-slate-300 mb-3">Game Over!</h2>
+
+        <div className="shimmer-text text-5xl sm:text-6xl font-black mb-3">
           <AnimatedCounter target={winnings} duration={2000} />
         </div>
+
         <p className="text-slate-400 text-sm mb-6">{message}</p>
         <motion.button
           whileHover={{ scale: 1.06, y: -2 }}
@@ -964,6 +980,13 @@ function LeaderboardPanel({
                 }`}>
                   {i + 1}
                 </span>
+
+                {entry.avatarSvg && (
+                  <div className="w-10 h-10 rounded-full bg-slate-800/30 border border-gold/20 p-0.5 flex items-center justify-center flex-shrink-0"
+                    dangerouslySetInnerHTML={{ __html: entry.avatarSvg }}
+                  />
+                )}
+
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-200 truncate">{entry.name}</p>
                   <p className="text-xs text-slate-500">
@@ -971,7 +994,8 @@ function LeaderboardPanel({
                     &middot; {new Date(entry.timestamp).toLocaleDateString()}
                   </p>
                 </div>
-                <span className={`text-sm font-bold ${
+
+                <span className={`text-sm font-bold whitespace-nowrap ${
                   entry.amount >= 100000 ? "text-gold" : "text-slate-300"
                 }`}>
                   {formatMoney(entry.amount)}
@@ -1186,6 +1210,7 @@ export default function DealOrNoDeal() {
       dealTaken: acceptedType === "deal",
       finalRound: round + 1,
       synced: false,
+      avatarSvg: playerAvatar?.svgCode,
     });
     setPhase("game_over");
   };
@@ -1321,6 +1346,25 @@ export default function DealOrNoDeal() {
         </div>
       </div>
 
+      {/* Avatar Edit Button */}
+      {playerAvatar && difficulty === null && !showAvatarCreator && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-4 right-4 sm:top-6 sm:right-6 z-40"
+        >
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowAvatarCreator(true)}
+            title="Edit your avatar"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gold/20 hover:bg-gold/30 border border-gold/50 flex items-center justify-center transition-all text-gold text-lg sm:text-xl"
+          >
+            ✏️
+          </motion.button>
+        </motion.div>
+      )}
+
       {/* Modals */}
       <AnimatePresence>
         {showAvatarCreator && (
@@ -1385,6 +1429,7 @@ export default function DealOrNoDeal() {
             winnings={finalWinnings}
             playerCaseValue={playerCase.value}
             accepted={acceptedType}
+            avatar={playerAvatar}
             onPlayAgain={handlePlayAgain}
           />
         )}
