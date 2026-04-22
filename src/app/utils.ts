@@ -28,7 +28,29 @@ export const BANKER_PERCENTAGES = [
   0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.92, 0.97,
 ];
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Avatar Types ─────────────────────────────────────────────────────────
+
+export type AvatarShape = "circle" | "square" | "triangle" | "star" | "heart";
+export type AvatarType = "simple" | "advanced" | "default";
+
+export interface AvatarMetadata {
+  shape: AvatarShape;
+  mainColor: string;
+  accentColor: string;
+  features: {
+    eyes: boolean;
+    mouth: boolean;
+    accessories: boolean;
+  };
+}
+
+export interface PlayerAvatar {
+  id: string;
+  type: AvatarType;
+  svgCode: string;
+  metadata?: AvatarMetadata;
+  createdAt: string;
+}
 
 export type GamePhase =
   | "pick_own_case"
@@ -195,6 +217,92 @@ export function playDealSound(): void {
   gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
   osc.start(ctx.currentTime);
   osc.stop(ctx.currentTime + 0.5);
+}
+
+// ─── Avatar Utilities ───────────────────────────────────────────────────────
+
+export function generateDefaultAvatar(): PlayerAvatar {
+  const svgCode = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="100" cy="100" r="100" fill="#4F46E5"/>
+    <circle cx="100" cy="100" r="80" fill="#6366F1"/>
+    <circle cx="75" cy="80" r="8" fill="white"/>
+    <circle cx="125" cy="80" r="8" fill="white"/>
+    <path d="M 80 120 Q 100 130 120 120" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>`;
+
+  return {
+    id: generateId(),
+    type: "default",
+    svgCode,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function generateSimpleAvatar(metadata: AvatarMetadata): PlayerAvatar {
+  const shapes: Record<AvatarShape, string> = {
+    circle: `<circle cx="100" cy="100" r="80" fill="${metadata.mainColor}"/>`,
+    square: `<rect x="20" y="20" width="160" height="160" fill="${metadata.mainColor}"/>`,
+    triangle: `<polygon points="100,20 180,180 20,180" fill="${metadata.mainColor}"/>`,
+    star: `<polygon points="100,10 135,90 220,90 160,145 190,225 100,170 10,225 40,145 -20,90 65,90" fill="${metadata.mainColor}"/>`,
+    heart: `<path d="M100,170 C50,130 20,100 20,70 C20,45 35,30 55,30 C75,30 100,50 100,50 C100,50 125,30 145,30 C165,30 180,45 180,70 C180,100 150,130 100,170 Z" fill="${metadata.mainColor}"/>`,
+  };
+
+  let svgContent = shapes[metadata.shape];
+
+  if (metadata.features.eyes) {
+    svgContent += `
+    <circle cx="70" cy="80" r="6" fill="${metadata.accentColor}"/>
+    <circle cx="130" cy="80" r="6" fill="${metadata.accentColor}"/>`;
+  }
+
+  if (metadata.features.mouth) {
+    svgContent += `
+    <path d="M 80 120 Q 100 135 120 120" stroke="${metadata.accentColor}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  }
+
+  if (metadata.features.accessories) {
+    svgContent += `
+    <circle cx="40" cy="50" r="8" fill="${metadata.accentColor}"/>
+    <circle cx="160" cy="50" r="8" fill="${metadata.accentColor}"/>`;
+  }
+
+  const svgCode = `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    ${svgContent}
+  </svg>`;
+
+  return {
+    id: generateId(),
+    type: "simple",
+    svgCode,
+    metadata,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function isValidSVG(code: string): boolean {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(code, "image/svg+xml");
+    return !doc.querySelector("parsererror");
+  } catch {
+    return false;
+  }
+}
+
+export function getPlayerAvatar(): PlayerAvatar | null {
+  if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem("dond_player_avatar");
+  return stored ? JSON.parse(stored) : null;
+}
+
+export function savePlayerAvatar(avatar: PlayerAvatar): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("dond_player_avatar", JSON.stringify(avatar));
+}
+
+export function deletePlayerAvatar(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("dond_player_avatar");
 }
 
 // ─── Haptic Feedback ─────────────────────────────────────────────────────────
