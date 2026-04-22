@@ -243,11 +243,15 @@ function BankerModal({
   round,
   onDeal,
   onNoDeal,
+  onShowOffers,
+  hasOffers,
 }: {
   offer: number;
   round: number;
   onDeal: () => void;
   onNoDeal: () => void;
+  onShowOffers: () => void;
+  hasOffers: boolean;
 }) {
   return (
     <motion.div
@@ -277,6 +281,17 @@ function BankerModal({
         <div className="shimmer-text text-4xl sm:text-5xl font-black mb-6">
           <AnimatedCounter target={offer} duration={1500} />
         </div>
+        {hasOffers && (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onShowOffers}
+            className="w-full mb-3 bg-slate-800/50 hover:bg-slate-800 text-slate-300 font-semibold py-2 px-4 rounded-lg
+              transition-all text-xs border border-slate-600/30 hover:border-gold/30"
+          >
+            📊 View Offer History
+          </motion.button>
+        )}
         <div className="flex gap-3">
           <motion.button
             whileHover={{ scale: 1.06, y: -2 }}
@@ -509,6 +524,80 @@ function GameOverModal({
         >
           <RotateCcw size={20} />
           Play Again
+        </motion.button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ─── Previous Offers Modal ──────────────────────────────────────────────────
+
+function PreviousOffersModal({
+  offers,
+  currentOffer,
+  onClose,
+}: {
+  offers: Array<{ round: number; offer: number }>;
+  currentOffer: number;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+    >
+      <motion.div
+        variants={popVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        onClick={(e) => e.stopPropagation()}
+        className="glass-strong rounded-2xl p-6 max-w-sm w-full shadow-2xl shadow-gold/10"
+      >
+        <h2 className="text-xl font-bold text-slate-200 mb-4">Banker Offers History</h2>
+
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {offers.length === 0 ? (
+            <p className="text-slate-500 text-sm text-center py-4">No offers yet</p>
+          ) : (
+            offers.map((offer, idx) => (
+              <motion.div
+                key={idx}
+                variants={popVariants}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: idx * 0.05 }}
+                className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg border border-slate-700/50 hover:border-gold/30 transition-all"
+              >
+                <span className="text-sm font-semibold text-slate-300">Round {offer.round}</span>
+                <span className="text-lg font-black text-gold">{formatMoney(offer.offer)}</span>
+              </motion.div>
+            ))
+          )}
+
+          {currentOffer > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center justify-between p-3 bg-gold/20 rounded-lg border-2 border-gold/50 mt-3"
+            >
+              <span className="text-sm font-semibold text-gold">Current Offer</span>
+              <span className="text-lg font-black text-gold-light">{formatMoney(currentOffer)}</span>
+            </motion.div>
+          )}
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onClose}
+          className="w-full mt-4 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-lg transition-all"
+        >
+          Close
         </motion.button>
       </motion.div>
     </motion.div>
@@ -1033,8 +1122,10 @@ function LeaderboardPanel({
 
 function DifficultySelector({
   onSelect,
+  onShowLeaderboard,
 }: {
   onSelect: (difficulty: DifficultyLevel) => void;
+  onShowLeaderboard: () => void;
 }) {
   return (
     <motion.div
@@ -1053,7 +1144,7 @@ function DifficultySelector({
       >
         <h2 className="text-2xl font-black text-slate-200 mb-2">Choose Difficulty</h2>
         <p className="text-slate-400 text-sm mb-6">Select your maximum prize pool</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           {DIFFICULTY_OPTIONS.map((option, idx) => (
             <motion.button
               key={option.value}
@@ -1071,6 +1162,15 @@ function DifficultySelector({
             </motion.button>
           ))}
         </div>
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onShowLeaderboard}
+          className="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold py-2.5 px-4 rounded-xl
+            transition-all text-sm flex items-center justify-center gap-2"
+        >
+          <Trophy size={16} /> View Leaderboards
+        </motion.button>
       </motion.div>
     </motion.div>
   );
@@ -1098,6 +1198,8 @@ export default function DealOrNoDeal() {
   const [revealedCaseValue, setRevealedCaseValue] = useState<number | null>(null);
   const [playerAvatar, setPlayerAvatar] = useState<PlayerAvatar | null>(null);
   const [showAvatarCreator, setShowAvatarCreator] = useState(false);
+  const [bankerOffers, setBankerOffers] = useState<Array<{ round: number; offer: number }>>([]);
+  const [showPreviousOffers, setShowPreviousOffers] = useState(false);
 
   const initGame = useCallback(() => {
     const valuesToUse = difficulty ? getPrizeValues(difficulty) : PRIZE_VALUES;
@@ -1115,6 +1217,7 @@ export default function DealOrNoDeal() {
     setBankerOffer(0);
     setFinalWinnings(0);
     setLastOpenedValue(null);
+    setBankerOffers([]);
   }, [difficulty]);
 
   useEffect(() => {
@@ -1189,6 +1292,7 @@ export default function DealOrNoDeal() {
         const pctIndex = Math.min(round, BANKER_PERCENTAGES.length - 1);
         const offer = Math.round(avg * BANKER_PERCENTAGES[pctIndex]);
         setBankerOffer(offer);
+        setBankerOffers((prev) => [...prev, { round: round + 1, offer }]);
         setPhase("banker_offer");
         if (soundEnabled) setTimeout(() => playPhoneRing(), 300);
       }
@@ -1258,7 +1362,13 @@ export default function DealOrNoDeal() {
       <div className="flex-1 flex flex-col items-center p-3 sm:p-4 max-w-5xl mx-auto w-full justify-center">
         <AnimatePresence>
           {difficulty === null && (
-            <DifficultySelector onSelect={setDifficulty} />
+            <DifficultySelector
+              onSelect={setDifficulty}
+              onShowLeaderboard={() => setShowLeaderboard(true)}
+            />
+          )}
+          {showLeaderboard && (
+            <LeaderboardPanel onClose={() => setShowLeaderboard(false)} />
           )}
         </AnimatePresence>
       </div>
@@ -1403,7 +1513,10 @@ export default function DealOrNoDeal() {
       </AnimatePresence>
       <AnimatePresence>
         {difficulty === null && !showAvatarCreator && (
-          <DifficultySelector onSelect={setDifficulty} />
+          <DifficultySelector
+            onSelect={setDifficulty}
+            onShowLeaderboard={() => setShowLeaderboard(true)}
+          />
         )}
       </AnimatePresence>
       <AnimatePresence>
@@ -1422,6 +1535,17 @@ export default function DealOrNoDeal() {
             round={round + 1}
             onDeal={handleDeal}
             onNoDeal={handleNoDeal}
+            onShowOffers={() => setShowPreviousOffers(true)}
+            hasOffers={bankerOffers.length > 0}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showPreviousOffers && phase === "banker_offer" && (
+          <PreviousOffersModal
+            offers={bankerOffers}
+            currentOffer={bankerOffer}
+            onClose={() => setShowPreviousOffers(false)}
           />
         )}
       </AnimatePresence>
