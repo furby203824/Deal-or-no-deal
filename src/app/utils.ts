@@ -75,6 +75,7 @@ export interface LeaderboardEntry {
   finalRound: number;
   synced: boolean;
   avatarSvg?: string;
+  difficulty: DifficultyLevel;
 }
 
 // ─── Utility Functions ───────────────────────────────────────────────────────
@@ -126,18 +127,29 @@ export function saveGamesPlayed(count: number): void {
   localStorage.setItem("dond_games_played", count.toString());
 }
 
-export function getLeaderboard(): LeaderboardEntry[] {
+export function getLeaderboard(difficulty?: DifficultyLevel): LeaderboardEntry[] {
   if (typeof window === "undefined") return [];
   const stored = localStorage.getItem("dond_leaderboard");
-  return stored ? JSON.parse(stored) : [];
+  const entries = stored ? JSON.parse(stored) : [];
+
+  if (difficulty) {
+    return entries.filter((e: LeaderboardEntry) => e.difficulty === difficulty);
+  }
+  return entries;
 }
 
 export function saveLeaderboardEntry(entry: LeaderboardEntry): void {
   if (typeof window === "undefined") return;
-  const existing = getLeaderboard();
+  const stored = localStorage.getItem("dond_leaderboard");
+  const existing = stored ? JSON.parse(stored) : [];
   existing.push(entry);
-  existing.sort((a, b) => b.amount - a.amount);
-  localStorage.setItem("dond_leaderboard", JSON.stringify(existing.slice(0, 50)));
+  existing.sort((a: LeaderboardEntry, b: LeaderboardEntry) => {
+    if (a.difficulty !== b.difficulty) {
+      return a.difficulty.localeCompare(b.difficulty);
+    }
+    return b.amount - a.amount;
+  });
+  localStorage.setItem("dond_leaderboard", JSON.stringify(existing.slice(0, 200)));
 }
 
 // ─── Sound Effects (Web Audio API, no external files) ────────────────────────
