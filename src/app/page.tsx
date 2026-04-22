@@ -15,74 +15,25 @@ import {
 
 const popVariants = {
   hidden: { scale: 0, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: { type: "spring", stiffness: 300, damping: 20 },
-  },
-  exit: { scale: 0, opacity: 0, transition: { duration: 0.2 } },
+  visible: { scale: 1, opacity: 1 },
+  exit: { scale: 0, opacity: 0 },
 };
 
 const bowingVariants = {
   hidden: { scale: 0.8, opacity: 0, y: 20 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 150,
-      damping: 15,
-      mass: 1.2,
-    },
-  },
-  exit: {
-    scale: 0.8,
-    opacity: 0,
-    y: 20,
-    transition: { duration: 0.2 },
-  },
+  visible: { scale: 1, opacity: 1, y: 0 },
+  exit: { scale: 0.8, opacity: 0, y: 20 },
 };
 
 const briefcasePopVariants = {
   hidden: { scale: 0.6, opacity: 0, rotate: -15 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    rotate: 0,
-    transition: {
-      type: "spring",
-      stiffness: 200,
-      damping: 15,
-    },
-  },
-};
-
-const pulsePopVariants = {
-  initial: { scale: 1 },
-  tap: { scale: 0.92 },
-  hover: { scale: 1.08 },
+  visible: { scale: 1, opacity: 1, rotate: 0 },
 };
 
 const modalBowingVariants = {
   hidden: { scale: 0.5, opacity: 0, y: 60 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 120,
-      damping: 20,
-      mass: 1.4,
-    },
-  },
-  exit: {
-    scale: 0.5,
-    opacity: 0,
-    y: 60,
-    transition: { duration: 0.25 },
-  },
+  visible: { scale: 1, opacity: 1, y: 0 },
+  exit: { scale: 0.5, opacity: 0, y: 60 },
 };
 import {
   PRIZE_VALUES,
@@ -177,14 +128,7 @@ function MoneyBoard({
           dimmed: { scale: 0.92, opacity: 0.15 },
         }}
         animate={dimmed ? "dimmed" : "initial"}
-        transition={dimmed ? {
-          type: "spring",
-          stiffness: 200,
-          damping: 20,
-        } : {
-          duration: 0.3,
-          ease: "easeOut",
-        }}
+        transition={dimmed ? { type: "spring", stiffness: 200, damping: 20 } : { duration: 0.3 }}
         className={`
           px-2 py-1 rounded font-bold text-center transition-all
           ${scaleFactor}
@@ -233,6 +177,7 @@ function BriefcaseButton({
       variants={briefcasePopVariants}
       initial="hidden"
       animate="visible"
+      transition={{ type: "spring", stiffness: 200, damping: 15 }}
       whileHover={clickable ? { scale: 1.1, y: -4 } : {}}
       whileTap={clickable ? { scale: 0.88 } : {}}
       onClick={() => clickable && onOpen(id)}
@@ -308,6 +253,7 @@ function BankerModal({
         initial="hidden"
         animate="visible"
         exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <motion.div
@@ -374,6 +320,7 @@ function FinalChoiceModal({
         initial="hidden"
         animate="visible"
         exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Trophy className="mx-auto mb-3 text-gold" size={40} />
@@ -432,6 +379,7 @@ function NameEntryModal({
         initial="hidden"
         animate="visible"
         exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Award className="mx-auto mb-3 text-gold" size={40} />
@@ -514,6 +462,7 @@ function GameOverModal({
         initial="hidden"
         animate="visible"
         exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <motion.div
@@ -567,6 +516,7 @@ function LeaderboardPanel({
         initial="hidden"
         animate="visible"
         exit="exit"
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="glass-strong rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-gold/10 max-h-[80vh] flex flex-col"
       >
         <div className="flex items-center justify-between mb-4">
@@ -588,7 +538,7 @@ function LeaderboardPanel({
                 variants={popVariants}
                 initial="hidden"
                 animate="visible"
-                transition={{ delay: i * 0.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.05 }}
                 className={`flex items-center gap-3 py-2 px-3 rounded-lg mb-1
                   ${i === 0 ? "bg-gold/10 border border-gold/20" : ""}
                   ${i === 1 ? "bg-slate-400/5 border border-slate-400/10" : ""}
@@ -640,6 +590,7 @@ function DifficultySelector({
         initial="hidden"
         animate="visible"
         exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
         className="glass-strong rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <h2 className="text-2xl font-black text-slate-200 mb-2">Choose Difficulty</h2>
@@ -651,7 +602,7 @@ function DifficultySelector({
               variants={popVariants}
               initial="hidden"
               animate="visible"
-              transition={{ delay: idx * 0.1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20, delay: idx * 0.1 }}
               whileHover={{ scale: 1.08, y: -2 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => onSelect(option.value)}
@@ -866,6 +817,7 @@ export default function DealOrNoDeal() {
         variants={popVariants}
         initial="hidden"
         animate="visible"
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="glass rounded-xl px-4 py-2 mb-3 text-center"
       >
         <p className="text-sm sm:text-base font-semibold text-slate-200">{statusMessage}</p>
