@@ -74,6 +74,7 @@ export interface LeaderboardEntry {
   dealTaken: boolean;
   finalRound: number;
   synced: boolean;
+  avatarSvg?: string;
 }
 
 // ─── Utility Functions ───────────────────────────────────────────────────────
