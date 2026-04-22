@@ -3,10 +3,10 @@
 export type DifficultyLevel = "1M" | "3M" | "5M" | "10M";
 
 export const DIFFICULTY_OPTIONS: { label: string; value: DifficultyLevel; max: number }[] = [
-  { label: "Easy", value: "1M", max: 1_000_000 },
-  { label: "Medium", value: "3M", max: 3_000_000 },
-  { label: "Hard", value: "5M", max: 5_000_000 },
-  { label: "Insane", value: "10M", max: 10_000_000 },
+  { label: "Insane", value: "1M", max: 1_000_000 },
+  { label: "Hard", value: "3M", max: 3_000_000 },
+  { label: "Medium", value: "5M", max: 5_000_000 },
+  { label: "Easy", value: "10M", max: 10_000_000 },
 ];
 
 export const BASE_PRIZE_VALUES = [
