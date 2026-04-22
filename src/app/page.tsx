@@ -10,6 +10,80 @@ import {
   Award,
   X,
 } from "lucide-react";
+
+// ─── Animation Variants ────────────────────────────────────────────────────
+
+const popVariants = {
+  hidden: { scale: 0, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: { type: "spring", stiffness: 300, damping: 20 },
+  },
+  exit: { scale: 0, opacity: 0, transition: { duration: 0.2 } },
+};
+
+const bowingVariants = {
+  hidden: { scale: 0.8, opacity: 0, y: 20 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 150,
+      damping: 15,
+      mass: 1.2,
+    },
+  },
+  exit: {
+    scale: 0.8,
+    opacity: 0,
+    y: 20,
+    transition: { duration: 0.2 },
+  },
+};
+
+const briefcasePopVariants = {
+  hidden: { scale: 0.6, opacity: 0, rotate: -15 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    rotate: 0,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 15,
+    },
+  },
+};
+
+const pulsePopVariants = {
+  initial: { scale: 1 },
+  tap: { scale: 0.92 },
+  hover: { scale: 1.08 },
+};
+
+const modalBowingVariants = {
+  hidden: { scale: 0.5, opacity: 0, y: 60 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 120,
+      damping: 20,
+      mass: 1.4,
+    },
+  },
+  exit: {
+    scale: 0.5,
+    opacity: 0,
+    y: 60,
+    transition: { duration: 0.25 },
+  },
+};
 import {
   PRIZE_VALUES,
   CASES_PER_ROUND,
@@ -98,11 +172,19 @@ function MoneyBoard({
       <motion.div
         key={value}
         layout
-        animate={{
-          opacity: dimmed ? 0.15 : 1,
-          scale: dimmed ? 0.92 : 1,
+        variants={{
+          initial: { scale: 1, opacity: 1 },
+          dimmed: { scale: 0.92, opacity: 0.15 },
         }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        animate={dimmed ? "dimmed" : "initial"}
+        transition={dimmed ? {
+          type: "spring",
+          stiffness: 200,
+          damping: 20,
+        } : {
+          duration: 0.3,
+          ease: "easeOut",
+        }}
         className={`
           px-2 py-1 rounded font-bold text-center transition-all
           ${scaleFactor}
@@ -148,8 +230,11 @@ function BriefcaseButton({
 
   return (
     <motion.button
-      whileHover={clickable ? { scale: 1.08 } : {}}
-      whileTap={clickable ? { scale: 0.93 } : {}}
+      variants={briefcasePopVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={clickable ? { scale: 1.1, y: -4 } : {}}
+      whileTap={clickable ? { scale: 0.88 } : {}}
       onClick={() => clickable && onOpen(id)}
       disabled={isOpened || !canOpen}
       className={`
@@ -184,8 +269,9 @@ function BriefcaseButton({
       </span>
       {isOpened && (
         <motion.span
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0, y: -5 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 250, damping: 15 }}
           className={`absolute -bottom-1 text-[9px] font-bold ${
             isHighValue(value) ? "text-gold-dark" : "text-blue-500/60"
           }`}
@@ -218,10 +304,10 @@ function BankerModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
-        initial={{ scale: 0.7, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.7, y: 40 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <motion.div
@@ -238,21 +324,25 @@ function BankerModal({
           <AnimatedCounter target={offer} duration={1500} />
         </div>
         <div className="flex gap-3">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.06, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onDeal}
             className="flex-1 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-black py-4 px-4 rounded-xl
-              transition-all text-xl shadow-lg shadow-red-600/40 hover:shadow-red-500/50 hover:scale-[1.02]
+              transition-all text-xl shadow-lg shadow-red-600/40 hover:shadow-red-500/50
               border border-red-500/30"
           >
             DEAL
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.06, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onNoDeal}
             className="flex-1 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 font-bold py-4 px-4 rounded-xl
               transition-all text-base shadow-lg border border-slate-600/30"
           >
             NO DEAL
-          </button>
+          </motion.button>
         </div>
       </motion.div>
     </motion.div>
@@ -280,10 +370,10 @@ function FinalChoiceModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
-        initial={{ scale: 0.7, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.7, y: 40 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Trophy className="mx-auto mb-3 text-gold" size={40} />
@@ -293,20 +383,24 @@ function FinalChoiceModal({
           with Case <span className="text-gold font-bold">#{lastCaseId}</span>?
         </p>
         <div className="flex gap-3">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.06, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onStay}
             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl
-              transition-all text-lg shadow-lg shadow-blue-600/30 hover:scale-[1.02]"
+              transition-all text-lg shadow-lg shadow-blue-600/30"
           >
             KEEP #{playerCaseId}
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.06, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onSwap}
             className="flex-1 bg-gold hover:bg-gold-light text-slate-900 font-bold py-3 px-4 rounded-xl
-              transition-all text-lg shadow-lg shadow-gold/30 hover:scale-[1.02]"
+              transition-all text-lg shadow-lg shadow-gold/30"
           >
             SWAP #{lastCaseId}
-          </button>
+          </motion.button>
         </div>
       </motion.div>
     </motion.div>
@@ -334,10 +428,10 @@ function NameEntryModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
-        initial={{ scale: 0.7, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.7, y: 40 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Award className="mx-auto mb-3 text-gold" size={40} />
@@ -356,21 +450,25 @@ function NameEntryModal({
           autoFocus
         />
         <div className="flex gap-3">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.95 }}
             onClick={onSkip}
             className="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold py-2.5 px-4 rounded-xl
               transition-colors text-sm"
           >
             Skip
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={name.trim() ? { scale: 1.05, y: -1 } : {}}
+            whileTap={name.trim() ? { scale: 0.95 } : {}}
             onClick={() => name.trim() && onSubmit(name.trim())}
             disabled={!name.trim()}
             className="flex-1 bg-gold hover:bg-gold-light disabled:bg-slate-700 disabled:text-slate-500
               text-slate-900 font-bold py-2.5 px-4 rounded-xl transition-colors text-sm"
           >
             Save Score
-          </button>
+          </motion.button>
         </div>
       </motion.div>
     </motion.div>
@@ -412,10 +510,10 @@ function GameOverModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
-        initial={{ scale: 0.7, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.7, y: 40 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <motion.div
@@ -429,15 +527,16 @@ function GameOverModal({
           <AnimatedCounter target={winnings} duration={2000} />
         </div>
         <p className="text-slate-400 text-sm mb-6">{message}</p>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.06, y: -2 }}
+          whileTap={{ scale: 0.95 }}
           onClick={onPlayAgain}
           className="w-full bg-gold hover:bg-gold-light text-slate-900 font-bold py-3 px-6 rounded-xl
-            transition-all text-lg flex items-center justify-center gap-2 shadow-lg shadow-gold/30
-            hover:scale-[1.02]"
+            transition-all text-lg flex items-center justify-center gap-2 shadow-lg shadow-gold/30"
         >
           <RotateCcw size={20} />
           Play Again
-        </button>
+        </motion.button>
       </motion.div>
     </motion.div>
   );
@@ -464,10 +563,10 @@ function LeaderboardPanel({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
-        initial={{ scale: 0.7, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.7, y: 40 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        variants={popVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="glass-strong rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-gold/10 max-h-[80vh] flex flex-col"
       >
         <div className="flex items-center justify-between mb-4">
@@ -484,8 +583,12 @@ function LeaderboardPanel({
         ) : (
           <div className="overflow-y-auto flex-1 -mx-2 px-2">
             {entries.slice(0, 20).map((entry, i) => (
-              <div
+              <motion.div
                 key={entry.id}
+                variants={popVariants}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: i * 0.05 }}
                 className={`flex items-center gap-3 py-2 px-3 rounded-lg mb-1
                   ${i === 0 ? "bg-gold/10 border border-gold/20" : ""}
                   ${i === 1 ? "bg-slate-400/5 border border-slate-400/10" : ""}
@@ -509,7 +612,7 @@ function LeaderboardPanel({
                 }`}>
                   {formatMoney(entry.amount)}
                 </span>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
@@ -533,20 +636,24 @@ function DifficultySelector({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
-        initial={{ scale: 0.7, y: 40 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.7, y: 40 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         className="glass-strong rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <h2 className="text-2xl font-black text-slate-200 mb-2">Choose Difficulty</h2>
         <p className="text-slate-400 text-sm mb-6">Select your maximum prize pool</p>
         <div className="grid grid-cols-2 gap-3">
-          {DIFFICULTY_OPTIONS.map((option) => (
+          {DIFFICULTY_OPTIONS.map((option, idx) => (
             <motion.button
               key={option.value}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              variants={popVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: idx * 0.1 }}
+              whileHover={{ scale: 1.08, y: -2 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => onSelect(option.value)}
               className="glass rounded-xl p-4 hover:bg-gold/20 transition-all border border-slate-600/30 hover:border-gold/50"
             >
@@ -756,15 +863,21 @@ export default function DealOrNoDeal() {
       {/* Status Bar */}
       <motion.div
         key={statusMessage}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={popVariants}
+        initial="hidden"
+        animate="visible"
         className="glass rounded-xl px-4 py-2 mb-3 text-center"
       >
         <p className="text-sm sm:text-base font-semibold text-slate-200">{statusMessage}</p>
         {phase === "opening_cases" && playerCaseId && (
-          <p className="text-xs text-slate-400 mt-0.5">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-xs text-slate-400 mt-0.5"
+          >
             Your case: <span className="text-gold font-bold">#{playerCaseId}</span>
-          </p>
+          </motion.p>
         )}
       </motion.div>
 
