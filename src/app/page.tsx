@@ -44,6 +44,9 @@ import {
   type CaseData,
   type LeaderboardEntry,
   type DifficultyLevel,
+  type PlayerAvatar,
+  type AvatarShape,
+  type AvatarMetadata,
   shuffleArray,
   formatMoney,
   isHighValue,
@@ -59,6 +62,11 @@ import {
   playDealSound,
   triggerHaptic,
   getPrizeValues,
+  generateDefaultAvatar,
+  generateSimpleAvatar,
+  isValidSVG,
+  getPlayerAvatar,
+  savePlayerAvatar,
 } from "./utils";
 
 // ─── Animated Counter Component ─────────────────────────────────────────────
@@ -491,6 +499,333 @@ function GameOverModal({
   );
 }
 
+// ─── Avatar Preview ─────────────────────────────────────────────────────────
+
+function AvatarPreview({
+  avatar,
+  size = "medium",
+}: {
+  avatar: PlayerAvatar;
+  size?: "small" | "medium" | "large";
+}) {
+  const sizeMap = {
+    small: "w-12 h-12",
+    medium: "w-20 h-20",
+    large: "w-32 h-32",
+  };
+
+  return (
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={`${sizeMap[size]} rounded-full bg-slate-800/30 border border-gold/30 p-1 flex items-center justify-center`}
+      dangerouslySetInnerHTML={{ __html: avatar.svgCode }}
+    />
+  );
+}
+
+// ─── Avatar Builder (Simple) ────────────────────────────────────────────────
+
+function AvatarBuilder({
+  onComplete,
+}: {
+  onComplete: (avatar: PlayerAvatar) => void;
+}) {
+  const shapes: AvatarShape[] = ["circle", "square", "triangle", "star", "heart"];
+  const [shape, setShape] = useState<AvatarShape>("circle");
+  const [mainColor, setMainColor] = useState("#6366F1");
+  const [accentColor, setAccentColor] = useState("#FBBF24");
+  const [features, setFeatures] = useState({ eyes: true, mouth: true, accessories: false });
+
+  const currentAvatar = generateSimpleAvatar({
+    shape,
+    mainColor,
+    accentColor,
+    features,
+  });
+
+  const handleComplete = () => {
+    savePlayerAvatar(currentAvatar);
+    onComplete(currentAvatar);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="text-sm font-bold text-slate-300 mb-3 block">Shape</label>
+        <div className="grid grid-cols-5 gap-2">
+          {shapes.map((s) => (
+            <motion.button
+              key={s}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShape(s)}
+              className={`py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+                shape === s
+                  ? "bg-gold text-slate-900 shadow-lg shadow-gold/50"
+                  : "bg-slate-700 hover:bg-slate-600 text-slate-200"
+              }`}
+            >
+              {s}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="text-sm font-bold text-slate-300 mb-3 block">Main Color</label>
+        <input
+          type="color"
+          value={mainColor}
+          onChange={(e) => setMainColor(e.target.value)}
+          className="w-full h-12 rounded-lg cursor-pointer border border-slate-600"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-bold text-slate-300 mb-3 block">Accent Color</label>
+        <input
+          type="color"
+          value={accentColor}
+          onChange={(e) => setAccentColor(e.target.value)}
+          className="w-full h-12 rounded-lg cursor-pointer border border-slate-600"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-bold text-slate-300 mb-3 block">Features</label>
+        <div className="space-y-2">
+          {(["eyes", "mouth", "accessories"] as const).map((feature) => (
+            <label key={feature} className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={features[feature]}
+                onChange={(e) => setFeatures({ ...features, [feature]: e.target.checked })}
+                className="w-4 h-4 cursor-pointer"
+              />
+              <span className="text-sm text-slate-300 capitalize">{feature}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleComplete}
+        className="w-full bg-gold hover:bg-gold-light text-slate-900 font-bold py-3 rounded-xl transition-all text-lg shadow-lg shadow-gold/30"
+      >
+        Use This Avatar
+      </motion.button>
+    </div>
+  );
+}
+
+// ─── Avatar Advanced (Custom SVG) ───────────────────────────────────────────
+
+function AvatarAdvanced({
+  onComplete,
+}: {
+  onComplete: (avatar: PlayerAvatar) => void;
+}) {
+  const [svgCode, setSvgCode] = useState("");
+  const [error, setError] = useState("");
+  const [preview, setPreview] = useState<PlayerAvatar | null>(null);
+
+  const handleValidate = () => {
+    if (!svgCode.trim()) {
+      setError("Please paste SVG code");
+      return;
+    }
+
+    if (!isValidSVG(svgCode)) {
+      setError("Invalid SVG code. Please check and try again.");
+      return;
+    }
+
+    const avatar: PlayerAvatar = {
+      id: generateId(),
+      type: "advanced",
+      svgCode,
+      createdAt: new Date().toISOString(),
+    };
+
+    setError("");
+    setPreview(avatar);
+  };
+
+  const handleComplete = () => {
+    if (preview) {
+      savePlayerAvatar(preview);
+      onComplete(preview);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="text-sm font-bold text-slate-300 mb-2 block">Paste SVG Code</label>
+        <textarea
+          value={svgCode}
+          onChange={(e) => setSvgCode(e.target.value)}
+          placeholder='<svg viewBox="0 0 200 200">...</svg>'
+          className="w-full h-40 bg-slate-800 border border-slate-600 rounded-lg p-3 text-slate-300 placeholder-slate-600 focus:border-gold/50 focus:ring-1 focus:ring-gold/30 font-mono text-sm"
+        />
+      </div>
+
+      {error && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-red-500 text-sm font-semibold"
+        >
+          ⚠️ {error}
+        </motion.p>
+      )}
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={handleValidate}
+        className="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-lg transition-all"
+      >
+        Preview
+      </motion.button>
+
+      {preview && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <p className="text-sm text-slate-400 mb-3">Preview:</p>
+          <AvatarPreview avatar={preview} size="medium" />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleComplete}
+            className="w-full mt-4 bg-gold hover:bg-gold-light text-slate-900 font-bold py-2 rounded-lg transition-all"
+          >
+            Use This Avatar
+          </motion.button>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+// ─── Avatar Creator Modal ───────────────────────────────────────────────────
+
+function AvatarCreatorModal({
+  onComplete,
+  onSkip,
+}: {
+  onComplete: (avatar: PlayerAvatar) => void;
+  onSkip: () => void;
+}) {
+  const [mode, setMode] = useState<"simple" | "advanced">("simple");
+  const [preview, setPreview] = useState<PlayerAvatar | null>(null);
+
+  const handleComplete = (avatar: PlayerAvatar) => {
+    setPreview(avatar);
+    setTimeout(() => {
+      onComplete(avatar);
+    }, 300);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+    >
+      <motion.div
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        className="glass-strong rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl shadow-gold/10 max-h-[90vh] overflow-y-auto"
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+          className="text-5xl mb-4"
+        >
+          🎨
+        </motion.div>
+
+        <h2 className="text-2xl font-black text-slate-200 mb-2">Create Your Avatar</h2>
+        <p className="text-slate-400 text-sm mb-6">Design your character for the leaderboard</p>
+
+        {preview ? (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-center"
+          >
+            <p className="text-slate-400 text-sm mb-4">Avatar Created!</p>
+            <AvatarPreview avatar={preview} size="large" />
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onComplete(preview)}
+              className="w-full mt-6 bg-gold hover:bg-gold-light text-slate-900 font-bold py-3 rounded-xl transition-all text-lg"
+            >
+              Let's Play!
+            </motion.button>
+          </motion.div>
+        ) : (
+          <>
+            <div className="flex gap-2 mb-6">
+              {(["simple", "advanced"] as const).map((m) => (
+                <motion.button
+                  key={m}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setMode(m)}
+                  className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${
+                    mode === m
+                      ? "bg-gold text-slate-900 shadow-lg shadow-gold/50"
+                      : "bg-slate-700 hover:bg-slate-600 text-slate-200"
+                  }`}
+                >
+                  {m === "simple" ? "Build" : "Custom"}
+                </motion.button>
+              ))}
+            </div>
+
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              {mode === "simple" ? (
+                <AvatarBuilder onComplete={handleComplete} />
+              ) : (
+                <AvatarAdvanced onComplete={handleComplete} />
+              )}
+            </motion.div>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onSkip}
+              className="w-full mt-4 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold py-2 rounded-lg transition-all text-sm"
+            >
+              Skip for Now
+            </motion.button>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
 // ─── Case Reveal Modal ──────────────────────────────────────────────────────
 
 function CaseRevealModal({
@@ -717,6 +1052,8 @@ export default function DealOrNoDeal() {
   const [prizeValues, setPrizeValues] = useState<number[]>(PRIZE_VALUES);
   const [revealedCaseId, setRevealedCaseId] = useState<number | null>(null);
   const [revealedCaseValue, setRevealedCaseValue] = useState<number | null>(null);
+  const [playerAvatar, setPlayerAvatar] = useState<PlayerAvatar | null>(null);
+  const [showAvatarCreator, setShowAvatarCreator] = useState(false);
 
   const initGame = useCallback(() => {
     const valuesToUse = difficulty ? getPrizeValues(difficulty) : PRIZE_VALUES;
@@ -739,6 +1076,13 @@ export default function DealOrNoDeal() {
   useEffect(() => {
     setCareerWinnings(getCareerWinnings());
     setGamesPlayed(getGamesPlayed());
+
+    const savedAvatar = getPlayerAvatar();
+    if (savedAvatar) {
+      setPlayerAvatar(savedAvatar);
+    } else {
+      setShowAvatarCreator(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -979,7 +1323,21 @@ export default function DealOrNoDeal() {
 
       {/* Modals */}
       <AnimatePresence>
-        {difficulty === null && (
+        {showAvatarCreator && (
+          <AvatarCreatorModal
+            onComplete={(avatar) => {
+              setPlayerAvatar(avatar);
+              setShowAvatarCreator(false);
+            }}
+            onSkip={() => {
+              setPlayerAvatar(generateDefaultAvatar());
+              setShowAvatarCreator(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {difficulty === null && !showAvatarCreator && (
           <DifficultySelector onSelect={setDifficulty} />
         )}
       </AnimatePresence>
