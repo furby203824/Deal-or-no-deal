@@ -491,7 +491,86 @@ function GameOverModal({
   );
 }
 
-// ─── Leaderboard Panel ───────────────────────────────────────────────────────
+// ─── Case Reveal Modal ──────────────────────────────────────────────────────
+
+function CaseRevealModal({
+  caseId,
+  value,
+  onDismiss,
+}: {
+  caseId: number;
+  value: number;
+  onDismiss: () => void;
+}) {
+  const high = isHighValue(value);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onDismiss}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+    >
+      <motion.div
+        variants={modalBowingVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
+        className="glass-strong rounded-2xl p-8 sm:p-10 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 150, damping: 15, delay: 0.1 }}
+          className={`text-6xl sm:text-7xl font-black mb-4 ${high ? "text-gold-light" : "text-blue-400"}`}
+        >
+          <Briefcase size={80} className={high ? "text-gold-light mx-auto" : "text-blue-400 mx-auto"} />
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-sm text-slate-400 mb-2"
+        >
+          Case #{caseId} Contains
+        </motion.p>
+
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.3 }}
+          className={`text-5xl sm:text-6xl font-black mb-6 ${high ? "text-gold-light" : "text-blue-400"}`}
+        >
+          {formatMoney(value)}
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-xs text-slate-500 mb-4"
+        >
+          Click anywhere to continue
+        </motion.p>
+
+        {high && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.4 }}
+            className="inline-block bg-red-600/20 text-red-500 px-3 py-1 rounded-lg text-xs font-bold border border-red-500/30"
+          >
+            ⚡ High Value!
+          </motion.div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}
 
 function LeaderboardPanel({
   onClose,
@@ -636,6 +715,8 @@ export default function DealOrNoDeal() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [difficulty, setDifficulty] = useState<DifficultyLevel | null>(null);
   const [prizeValues, setPrizeValues] = useState<number[]>(PRIZE_VALUES);
+  const [revealedCaseId, setRevealedCaseId] = useState<number | null>(null);
+  const [revealedCaseValue, setRevealedCaseValue] = useState<number | null>(null);
 
   const initGame = useCallback(() => {
     const valuesToUse = difficulty ? getPrizeValues(difficulty) : PRIZE_VALUES;
@@ -692,12 +773,24 @@ export default function DealOrNoDeal() {
     const updatedCases = cases.map((c) => (c.id === id ? { ...c, isOpened: true } : c));
     setCases(updatedCases);
     setLastOpenedValue(caseToOpen.value);
+    setRevealedCaseId(id);
+    setRevealedCaseValue(caseToOpen.value);
 
     if (soundEnabled) playCaseOpenSound(isHighValue(caseToOpen.value));
     if (isHighValue(caseToOpen.value)) triggerHaptic([50, 30, 80]);
 
     const newOpenedCount = casesOpenedThisRound + 1;
     setCasesOpenedThisRound(newOpenedCount);
+  };
+
+  const handleRevealDismiss = () => {
+    setRevealedCaseId(null);
+    setRevealedCaseValue(null);
+
+    const updatedCases = cases.map((c) =>
+      revealedCaseId === c.id ? { ...c, isOpened: true } : c
+    );
+    const newOpenedCount = casesOpenedThisRound;
 
     if (newOpenedCount >= casesToOpenThisRound) {
       const stillRemaining = updatedCases.filter((c) => !c.isOpened && c.id !== playerCaseId);
@@ -888,6 +981,15 @@ export default function DealOrNoDeal() {
       <AnimatePresence>
         {difficulty === null && (
           <DifficultySelector onSelect={setDifficulty} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {revealedCaseId !== null && revealedCaseValue !== null && (
+          <CaseRevealModal
+            caseId={revealedCaseId}
+            value={revealedCaseValue}
+            onDismiss={handleRevealDismiss}
+          />
         )}
       </AnimatePresence>
       <AnimatePresence>
