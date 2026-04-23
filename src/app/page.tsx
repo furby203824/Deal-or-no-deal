@@ -266,6 +266,7 @@ function BankerModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <motion.div
@@ -344,6 +345,7 @@ function FinalChoiceModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Trophy className="mx-auto mb-3 text-gold" size={40} />
@@ -403,6 +405,7 @@ function NameEntryModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Award className="mx-auto mb-3 text-gold" size={40} />
@@ -488,6 +491,7 @@ function GameOverModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         {avatar && (
@@ -852,6 +856,7 @@ function AvatarCreatorModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl shadow-gold/10 max-h-[90vh] overflow-y-auto"
       >
         <motion.div
@@ -1030,7 +1035,7 @@ function LeaderboardPanel({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-51 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
     >
       <motion.div
         variants={popVariants}
@@ -1038,6 +1043,7 @@ function LeaderboardPanel({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-gold/10 max-h-[90vh] flex flex-col"
       >
         <div className="flex items-center justify-between mb-4">
@@ -1140,6 +1146,7 @@ function DifficultySelector({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <h2 className="text-2xl font-black text-slate-200 mb-2">Choose Difficulty</h2>
