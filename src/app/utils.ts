@@ -152,6 +152,11 @@ export function saveLeaderboardEntry(entry: LeaderboardEntry): void {
   localStorage.setItem("dond_leaderboard", JSON.stringify(existing.slice(0, 200)));
 }
 
+export function clearLeaderboard(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("dond_leaderboard");
+}
+
 // ─── Sound Effects (Web Audio API, no external files) ────────────────────────
 
 let audioCtx: AudioContext | null = null;

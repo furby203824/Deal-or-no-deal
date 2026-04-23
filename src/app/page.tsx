@@ -547,7 +547,7 @@ function PreviousOffersModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-51 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
     >
       <motion.div
         variants={popVariants}
