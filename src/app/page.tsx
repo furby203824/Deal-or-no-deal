@@ -266,6 +266,7 @@ function BankerModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <motion.div
@@ -344,6 +345,7 @@ function FinalChoiceModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Trophy className="mx-auto mb-3 text-gold" size={40} />
@@ -403,6 +405,7 @@ function NameEntryModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         <Award className="mx-auto mb-3 text-gold" size={40} />
@@ -488,6 +491,7 @@ function GameOverModal({
         animate="visible"
         exit="exit"
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1.4 }}
+        onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-2xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl shadow-gold/10"
       >
         {avatar && (
