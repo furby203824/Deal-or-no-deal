@@ -438,8 +438,8 @@ function NameEntryModal({
             whileTap={name.trim() ? { scale: 0.95 } : {}}
             onClick={() => name.trim() && onSubmit(name.trim())}
             disabled={!name.trim()}
-            className="flex-1 bg-gold hover:bg-gold-light disabled:bg-slate-700 disabled:text-slate-500
-              text-slate-900 font-bold py-2.5 px-4 rounded-xl transition-colors text-sm"
+            className="flex-1 bg-gold hover:bg-gold-light disabled:bg-slate-700 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed
+              text-slate-900 font-bold py-2.5 px-4 rounded-xl transition-all text-sm"
           >
             Save Score
           </motion.button>
@@ -970,16 +970,16 @@ function CaseRevealModal({
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", stiffness: 150, damping: 15, delay: 0.1 }}
-          className={`text-6xl sm:text-7xl font-black mb-4 ${high ? "text-gold-light" : "text-blue-400"}`}
+          className={`text-6xl sm:text-7xl font-black mb-4 ${high ? "text-gold" : "text-blue-400"}`}
         >
-          <Briefcase size={80} className={high ? "text-gold-light mx-auto" : "text-blue-400 mx-auto"} />
+          <Briefcase size={80} className={high ? "text-gold mx-auto" : "text-blue-400 mx-auto"} />
         </motion.div>
 
         <motion.p
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-sm text-slate-400 mb-2"
+          className="text-sm text-slate-300 mb-2"
         >
           Case #{caseId} Contains
         </motion.p>
@@ -988,7 +988,7 @@ function CaseRevealModal({
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.3 }}
-          className={`text-5xl sm:text-6xl font-black mb-6 ${high ? "text-gold-light" : "text-blue-400"}`}
+          className={`text-5xl sm:text-6xl font-black mb-6 ${high ? "text-gold" : "text-blue-400"}`}
         >
           {formatMoney(value)}
         </motion.div>
@@ -1091,7 +1091,7 @@ function LeaderboardPanel({
                 `}
               >
                 <span className={`text-sm font-black w-6 text-center ${
-                  i === 0 ? "text-gold" : i === 1 ? "text-slate-300" : i === 2 ? "text-gold-dark" : "text-slate-500"
+                  i === 0 ? "text-gold" : i === 1 ? "text-slate-300" : i === 2 ? "text-gold-light" : "text-slate-500"
                 }`}>
                   {i + 1}
                 </span>
@@ -1389,25 +1389,29 @@ export default function DealOrNoDeal() {
         <h1 className="shimmer-text text-3xl sm:text-4xl font-black tracking-tight">
           DEAL OR NO DEAL
         </h1>
-        <div className="flex justify-center items-center gap-3 mt-1 text-xs text-slate-400 flex-wrap">
-          <span>
-            Career: <span className="text-gold font-bold">{formatMoney(careerWinnings)}</span>
+        <div className="flex justify-center items-center gap-2 sm:gap-3 mt-2 text-[11px] sm:text-xs text-slate-400 flex-wrap">
+          <span className="whitespace-nowrap">
+            Career: <span className="text-gold font-bold text-[10px] sm:text-xs">{formatMoney(careerWinnings)}</span>
           </span>
           <span className="text-slate-600">|</span>
-          <span>Games: {gamesPlayed}</span>
+          <span className="whitespace-nowrap">Games: {gamesPlayed}</span>
           <span className="text-slate-600">|</span>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowLeaderboard(true)}
-            className="text-gold/60 hover:text-gold transition-colors flex items-center gap-1"
+            className="text-gold/60 hover:text-gold transition-colors flex items-center gap-1 px-2 py-1 rounded hover:bg-gold/10"
           >
-            <Award size={12} /> Board
-          </button>
-          <button
+            <Award size={14} /> Board
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setSoundEnabled((s) => !s)}
-            className="text-slate-600 hover:text-slate-400 transition-colors text-[10px]"
+            className="text-slate-600 hover:text-slate-300 transition-colors text-[11px] sm:text-xs px-2 py-1 rounded hover:bg-slate-700/30"
           >
-            {soundEnabled ? "SFX ON" : "SFX OFF"}
-          </button>
+            {soundEnabled ? "🔊" : "🔇"}
+          </motion.button>
         </div>
       </header>
 
